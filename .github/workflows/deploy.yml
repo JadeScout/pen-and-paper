@@ -1,0 +1,46 @@
+name: Deploy Quartz site to GitHub Pages
+
+on:
+  push:
+    branches:
+      - v4 # Wichtig: Auf deinen Branch anpassen
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Holt alle Commits, wichtig für Quartz
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18 # Verwendet Node.js Version 18
+
+      - name: Install Dependencies
+        run: npm install # Installiert die nötigen Pakete
+
+      - name: Build Quartz
+        run: npx quartz build # Das ist der "Backen"-Befehl
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: public # Der Ordner mit der fertigen Webseite
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
